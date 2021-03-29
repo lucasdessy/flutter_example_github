@@ -12,7 +12,7 @@ class Item {
   String? reposUrl;
   String? receivedEventsUrl;
   String? type;
-  int? score;
+  double? score;
   String? followingUrl;
   String? gistsUrl;
   String? starredUrl;

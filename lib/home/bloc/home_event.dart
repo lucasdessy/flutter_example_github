@@ -8,5 +8,3 @@ class SearchHomeEvent extends HomeEvent {
 
   SearchHomeEvent(this.searchTerms);
 }
-
-class ReloadHomeEvent extends HomeEvent {}

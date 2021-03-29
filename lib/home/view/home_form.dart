@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_example_github/home/home.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_example_github/repos/github_repository/github_repository.dart';
+import 'package:flutter_example_github/user/user.dart';
 
 class HomeForm extends StatelessWidget {
   final _textEditingController = TextEditingController();
@@ -87,15 +88,22 @@ class _UserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            title: Text('${user.login}'),
-            leading: CircleAvatar(
-              foregroundImage: NetworkImage('${user.avatarUrl}'),
+      child: InkWell(
+        onTap: () {
+          if (user.login != null) {
+            Navigator.of(context).push(UserPage.route(userId: user.login!));
+          }
+        },
+        child: Ink(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              title: Text('${user.login}'),
+              leading: CircleAvatar(
+                foregroundImage: NetworkImage('${user.avatarUrl}'),
+              ),
+              trailing: Icon(Icons.chevron_right),
             ),
-            trailing: Icon(Icons.chevron_right),
           ),
         ),
       ),

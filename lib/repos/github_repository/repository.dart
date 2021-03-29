@@ -22,13 +22,29 @@ class GithubRepository {
   Future<RequestModel> fetchUsers(String query) async {
     try {
       if (_cache.contains(query)) {
+        print('found on cache!');
         return _cache.get(query)!;
       } else {
         final baseUri = Uri.https(baseUrl, '/search/users', {'q': query});
         final response = await _client.get(baseUri, headers: headers);
         final Map<String, dynamic> json = jsonDecode(response.body);
-        return RequestModel.fromJson(json);
+        final result = RequestModel.fromJson(json);
+        _cache.set(query, result);
+        return result;
       }
+    } on Exception catch (e) {
+      print(e);
+      throw RequestFailure();
+    }
+  }
+
+  Future<User> fetchUser(String userId) async {
+    try {
+      final baseUri =
+          Uri.https(baseUrl, '/users/$userId', {'username': userId});
+      final response = await _client.get(baseUri, headers: headers);
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return User.fromJson(json);
     } on Exception catch (e) {
       print(e);
       throw RequestFailure();

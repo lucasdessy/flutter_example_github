@@ -50,4 +50,16 @@ class GithubRepository {
       throw RequestFailure();
     }
   }
+
+  Future<List<Repo>> fetchRepos(String userId) async {
+    try {
+      final baseUri = Uri.https(baseUrl, '/users/$userId/repos');
+      final response = await _client.get(baseUri, headers: headers);
+      final List json = jsonDecode(response.body);
+      return json.map((e) => Repo.fromJson(e)).toList();
+    } on Exception catch (e) {
+      print(e);
+      throw RequestFailure();
+    }
+  }
 }

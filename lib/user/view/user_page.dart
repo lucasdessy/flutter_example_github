@@ -19,25 +19,33 @@ class UserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('$userId'),
-      ),
-      body: BlocProvider(
-        create: (context) => UserCubit(
-          userId: userId,
-          githubRepository: context.read<GithubRepository>(),
+        appBar: AppBar(
+          title: Text('$userId'),
         ),
-        child: _UserView(),
-      ),
-    );
+        body: MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => UserCubit(
+                userId: userId,
+                githubRepository: context.read<GithubRepository>(),
+              ),
+            ),
+            BlocProvider(
+              create: (context) => RepoCubit(
+                userId: userId,
+                githubRepository: context.read<GithubRepository>(),
+              ),
+            ),
+          ],
+          child: _UserView(),
+        ));
   }
 }
 
 class _UserView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<UserCubit, UserState>(
-      listener: (context, state) {},
+    return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
         if (state is UserLoaded) {
           return _UserCard(
@@ -73,51 +81,54 @@ class _UserCard extends StatelessWidget {
   const _UserCard({Key? key, required this.user}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: CircleAvatar(
-              foregroundImage: NetworkImage('${user.avatarUrl}'),
-              radius: 90,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: CircleAvatar(
+                foregroundImage: NetworkImage('${user.avatarUrl}'),
+                radius: 90,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            '${user.login}',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headline5,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            '${user.bio}',
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
+            const SizedBox(
+              height: 16,
             ),
-            padding: const EdgeInsets.all(5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildItem(context, '${user.followers}', 'followers'),
-                _buildItem(context, '${user.following}', ' following'),
-                _buildItem(context, '${user.publicRepos}', ' repos'),
-              ],
+            Text(
+              '${user.login}',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headline5,
             ),
-          ),
-        ],
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              '${user.bio}',
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildItem(context, '${user.followers}', 'followers'),
+                  _buildItem(context, '${user.following}', ' following'),
+                  _buildItem(context, '${user.publicRepos}', ' repos'),
+                ],
+              ),
+            ),
+            _ReposList(),
+          ],
+        ),
       ),
     );
   }
@@ -136,6 +147,44 @@ class _UserCard extends StatelessWidget {
       ],
     );
   }
+}
 
-  // TODO make repos list
+class _ReposList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RepoCubit, RepoState>(builder: (context, state) {
+      if (state is RepoError) {
+        return _buildRepoError(context);
+      }
+      if (state is RepoLoaded) {
+        return _buildRepos(state.repos);
+      }
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    });
+  }
+
+  Widget _buildRepoError(BuildContext context) => Column(
+        children: [
+          Text('Ocorreu um erro ao carregar repositórios.'),
+          ElevatedButton(
+            onPressed: () {
+              context.read<RepoCubit>().reloadRepos();
+            },
+            child: Text('Tentar novamente'),
+          ),
+        ],
+      );
+
+  Widget _buildRepos(List<Repo> repos) => Column(
+        children: repos
+            .map(
+              (e) => ListTile(
+                title: Text('${e.name}'),
+                subtitle: Text('${e.language}'),
+              ),
+            )
+            .toList(),
+      );
 }

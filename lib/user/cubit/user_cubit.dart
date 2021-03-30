@@ -8,16 +8,16 @@ part 'user_state.dart';
 class UserCubit extends Cubit<UserState> {
   UserCubit({required this.userId, required this.githubRepository})
       : super(UserLoading()) {
-    _load(userId);
+    _load();
   }
   final GithubRepository githubRepository;
   final String userId;
-  Future<void> _load(String _userId) async {
+  Future<void> _load() async {
     try {
-      print('loading user $_userId');
+      print('loading user $userId');
       emit(UserLoading());
       final user = await githubRepository.fetchUser(userId);
-      print('loaded user $_userId');
+      print('loaded user $userId');
       emit(UserLoaded(user));
     } on Exception {
       emit(UserError());
@@ -25,6 +25,6 @@ class UserCubit extends Cubit<UserState> {
   }
 
   void reloadUser() {
-    _load(userId);
+    _load();
   }
 }

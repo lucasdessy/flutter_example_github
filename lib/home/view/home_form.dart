@@ -26,7 +26,8 @@ class HomeForm extends StatelessWidget {
               return _buildLoading();
             }
             if (state is HomeError) {
-              return _buildError(context);
+              final lastEvent = state.lastEvent;
+              return _buildError(context, lastEvent);
             }
 
             if (state is HomeLoaded) {
@@ -49,15 +50,13 @@ class HomeForm extends StatelessWidget {
         child: CircularProgressIndicator(),
       );
 
-  Widget _buildError(BuildContext context) => Column(
+  Widget _buildError(BuildContext context, HomeEvent event) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text('Ocorreu um erro'),
           ElevatedButton(
             onPressed: () {
-              context
-                  .read<HomeBloc>()
-                  .add(SearchHomeEvent(_textEditingController.text));
+              context.read<HomeBloc>().add(HomeReloadEvend(lastEvent: event));
             },
             child: Text('Tentar novamente'),
           ),

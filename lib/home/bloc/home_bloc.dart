@@ -19,7 +19,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async* {
     if (event is SearchHomeEvent) {
       yield HomeLoading();
-      yield await reloadUsers(event.searchTerms);
+      yield await reloadUsers(event);
+    }
+    if (event is HomeReloadEvend) {
+      add(event.lastEvent);
     }
   }
 
@@ -28,15 +31,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     super.onTransition(transition);
   }
 
-  Future<HomeState> reloadUsers(String query) async {
+  Future<HomeState> reloadUsers(SearchHomeEvent event) async {
     try {
-      final users = await githubRepository.fetchUsers(query);
+      final users = await githubRepository.fetchUsers(event.searchTerms);
       if (users.items != null) {
         return HomeLoaded(users.items!);
       }
       return HomeEmpty();
     } catch (e) {
-      return HomeError();
+      return HomeError(lastEvent: event);
     }
   }
 }
